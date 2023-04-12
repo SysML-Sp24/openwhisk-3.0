@@ -41,7 +41,7 @@ whisk_api_localhost_name_default: "localhost"
 # If you use a docker-machine on a mac use 'docker-machine'
 # If you want to deploy Openwhisk to other machines use 'distributed'
 environmentInformation:
-  type: "{{ environment_type | default('local') }}"
+  type: "{{ environment_type | default('distributed') }}"
 
 hosts_dir: "{{ inventory_dir | default(env_hosts_dir) }}"
 
@@ -77,10 +77,10 @@ manifestfile: "{{ manifest_file | default('/ansible/files/runtimes.json') }}"
 runtimesManifest: "{{ runtimes_manifest | default(lookup('file', openwhisk_home ~ '{{ manifestfile }}') | from_json) }}"
 
 limits:
-  invocationsPerMinute: "{{ limit_invocations_per_minute | default(60) }}"
-  concurrentInvocations: "{{ limit_invocations_concurrent | default(30) }}"
-  firesPerMinute: "{{ limit_fires_per_minute | default(60) }}"
-  sequenceMaxLength: "{{ limit_sequence_max_length | default(50) }}"
+  invocationsPerMinute: "{{ limit_invocations_per_minute | default(99999999) }}"
+  concurrentInvocations: "{{ limit_invocations_concurrent | default(99999999) }}"
+  firesPerMinute: "{{ limit_fires_per_minute | default(99999999) }}"
+  sequenceMaxLength: "{{ limit_sequence_max_length | default(99999999) }}"
 
 # Moved here to avoid recursions. Please do not use outside of controller-dict.
 __controller_ssl_keyPrefix: "controller-"

@@ -219,6 +219,7 @@ object ConfigKeys {
   val kafkaTopicsUserEventPrefix = s"$kafkaTopics.user-event.prefix"
 
   val memory = "whisk.memory"
+  val cpu = "whisk.cpu"
   val timeLimit = "whisk.time-limit"
   val logLimit = "whisk.log-limit"
   val concurrencyLimit = "whisk.concurrency-limit"
