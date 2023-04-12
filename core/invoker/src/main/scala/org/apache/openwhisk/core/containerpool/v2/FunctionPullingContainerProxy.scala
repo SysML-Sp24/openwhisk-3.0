@@ -253,7 +253,7 @@ class FunctionPullingContainerProxy(
         job.action.exec.image,
         job.action.exec.pull,
         job.action.limits.memory.megabytes.MB,
-        poolConfig.cpuShare(job.action,limits.cpu.cores, job.action.limits.memory.megabytes.MB),
+        poolConfig.cpuShare(job.action.limits.cpu.cores, job.action.limits.memory.megabytes.MB),
         None)
         .andThen {
           case Failure(t) =>

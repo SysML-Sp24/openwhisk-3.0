@@ -254,7 +254,7 @@ object Controller {
   private def info(config: WhiskConfig,
                    timeLimit: TimeLimitConfig,
                    memLimit: MemoryLimitConfig,
-                   cpuLimit: CpuLimitConfig
+                   cpuLimit: CpuLimitConfig,
                    logLimit: MemoryLimitConfig,
                    runtimes: Runtimes,
                    apis: List[String]) =
