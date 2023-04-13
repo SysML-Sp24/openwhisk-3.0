@@ -169,7 +169,7 @@ trait Container {
       transid.started(
         this,
         LoggingMarkers.INVOKER_ACTIVATION_RUN,
-        s"sending arguments to $actionName at $id $addr",
+        s"sending arguments to $actionName at $id $addr with parameters ($parameters) and environment data ($environment)",
         logLevel = InfoLevel)
 
     val parameterWrapper = JsObject("value" -> parameters)
