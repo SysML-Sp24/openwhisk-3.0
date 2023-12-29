@@ -248,6 +248,7 @@ protected[core] object ActivationResponse extends DefaultJsonProtocol {
         }
 
       case Left(_: MemoryExhausted) =>
+        logger.warn(this, s"Lachesis -- memory exhaustion")
         developerError(memoryExhausted)
 
       case Left(e) =>

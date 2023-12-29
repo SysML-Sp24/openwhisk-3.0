@@ -254,7 +254,9 @@ class DockerContainer(protected val id: ContainerId,
             // terminal connection error.
             case error: ConnectionError =>
               isOomKilled().map {
-                case true  => MemoryExhausted()
+                case true  => 
+                  logging.warn(this, s"Lachesis - in isOomKilled()")
+                  MemoryExhausted()
                 case false => error
               }
             case other => Future.successful(other)

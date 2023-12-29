@@ -299,6 +299,9 @@ class ContainerProxy(factory: (TransactionId,
     case Event(job: Run, _) =>
       implicit val transid = job.msg.transid
       activeCount += 1
+      logging.info(this, s"Cold start - Prasoon Log")
+      logging.info(this, s"Job contains the following: (${job.action})")
+      logging.info(this, s"Job contains the following: (${job.msg})")
       // create a new container
       val container = factory(
         job.msg.transid,
@@ -824,25 +827,66 @@ class ContainerProxy(factory: (TransactionId,
           // but potentially under-estimates actual deadline
           "deadline" -> (Instant.now.toEpochMilli + actionTimeout.toMillis).toString.toJson)
 
-        container
-          .run(
-            parameters,
-            env.toJson.asJsObject,
-            actionTimeout,
-            job.action.limits.concurrency.maxConcurrent,
-            reschedule)(job.msg.transid)
-          .map {
-            case (runInterval, response) =>
-              val initRunInterval = initInterval
-                .map(i => Interval(runInterval.start.minusMillis(i.duration.toMillis), runInterval.end))
-                .getOrElse(runInterval)
+        // Check if activation is actual invocation by user or a scheduler inserted activation to 
+        // create a warm container in the background
+        val backgroundActivation: Option[Boolean] = job.msg.content.collect {
+          case jsObject: JsObject => jsObject.fields.get("background") collect {
+            case JsBoolean(value) => value
+          }
+        }.flatten
+
+        backgroundActivation match {
+          // Run the user-specied invocation
+          case Some(false) => 
+            container
+              .run(
+                parameters,
+                env.toJson.asJsObject,
+                actionTimeout,
+                job.action.limits.concurrency.maxConcurrent,
+                reschedule)(job.msg.transid)
+              .map {
+                case (runInterval, response) =>
+                  val initRunInterval = initInterval
+                    .map(i => Interval(runInterval.start.minusMillis(i.duration.toMillis), runInterval.end))
+                    .getOrElse(runInterval)
+                  ContainerProxy.constructWhiskActivation(
+                    job,
+                    initInterval,
+                    initRunInterval,
+                    runInterval.duration >= actionTimeout,
+                    response)
+              }
+          // Don't run anything on conatiner, the scheduler decided to 
+          // create a warm container with code initialized in the background
+          case _ =>
+            Future.successful(
               ContainerProxy.constructWhiskActivation(
                 job,
-                initInterval,
-                initRunInterval,
-                runInterval.duration >= actionTimeout,
-                response)
-          }
+                None,
+                Interval.zero,
+                false,
+                ActivationResponse(ActivationResponse.Success, None, None)))
+        }
+        // container
+        //   .run(
+        //     parameters,
+        //     env.toJson.asJsObject,
+        //     actionTimeout,
+        //     job.action.limits.concurrency.maxConcurrent,
+        //     reschedule)(job.msg.transid)
+        //   .map {
+        //     case (runInterval, response) =>
+        //       val initRunInterval = initInterval
+        //         .map(i => Interval(runInterval.start.minusMillis(i.duration.toMillis), runInterval.end))
+        //         .getOrElse(runInterval)
+        //       ContainerProxy.constructWhiskActivation(
+        //         job,
+        //         initInterval,
+        //         initRunInterval,
+        //         runInterval.duration >= actionTimeout,
+        //         response)
+        //   }
       }
       .recoverWith {
         case h: ContainerHealthError =>

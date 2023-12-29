@@ -60,7 +60,7 @@ class LeanBalancer(config: WhiskConfig,
     implicit transid: TransactionId): Future[Future[Either[ActivationId, WhiskActivation]]] = {
 
     /** 2. Update local state with the activation to be executed scheduled. */
-    val activationResult = setupActivation(msg, action, invokerName)
+    val activationResult = setupActivation(msg, action, invokerName, action.limits.cpu.cores)
     sendActivationToInvoker(messageProducer, msg, invokerName).map(_ => activationResult)
   }
 

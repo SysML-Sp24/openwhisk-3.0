@@ -47,4 +47,11 @@ env_hosts_dir: "{{ playbook_dir }}/environments/local"
 
 container_pool_akka_client: true
 runtimes_enable_concurrency: true
-limit_action_concurrency_max: 500
+invoker_user_memory: '125000m'
+limit_action_time_max: '60m'
+
+# We are using custom runtime images, so we want black box fraction to be low
+controller_blackbox_fraction: 1.0
+
+# Enable scheduler
+# scheduler_enable: true

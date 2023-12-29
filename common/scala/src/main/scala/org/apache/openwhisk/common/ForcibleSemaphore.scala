@@ -32,7 +32,8 @@ import scala.annotation.tailrec
  * As this is (now) only used for the loadbalancer's scheduling, this does not implement the "whole" Java Semaphore's
  * interface but only the methods needed.
  *
- * @param maxAllowed maximum number of permits given away by `tryAcquire`
+ * @param maxAllowed maximum number of memory permits given away by `tryAcquire`
+ * 
  */
 class ForcibleSemaphore(maxAllowed: Int) {
   class Sync extends AbstractQueuedSynchronizer {

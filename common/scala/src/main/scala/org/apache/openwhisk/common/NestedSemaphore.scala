@@ -82,7 +82,7 @@ class NestedSemaphore[T](memoryPermits: Int) extends ForcibleSemaphore(memoryPer
   }
 
   def forceAcquireConcurrent(actionid: T, maxConcurrent: Int, memoryPermits: Int): Unit = {
-    require(memoryPermits > 0, "cannot force acquire negative or no permits")
+    require(memoryPermits > 0, "cannot force acquire negative or no memory permits")
     if (maxConcurrent == 1) {
       super.forceAcquire(memoryPermits)
     } else {
@@ -96,7 +96,7 @@ class NestedSemaphore[T](memoryPermits: Int) extends ForcibleSemaphore(memoryPer
    * @param acquires the number of permits to release
    */
   def releaseConcurrent(actionid: T, maxConcurrent: Int, memoryPermits: Int): Unit = {
-    require(memoryPermits > 0, "cannot release negative or no permits")
+    require(memoryPermits > 0, "cannot release negative or no memory permits")
     if (maxConcurrent == 1) {
       super.release(memoryPermits)
     } else {

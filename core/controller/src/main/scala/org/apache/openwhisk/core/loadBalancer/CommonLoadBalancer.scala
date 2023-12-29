@@ -21,7 +21,7 @@ import akka.actor.ActorRef
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.atomic.LongAdder
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorSystem}
 import akka.event.Logging.InfoLevel
 import pureconfig._
 import pureconfig.generic.auto._
@@ -37,6 +37,7 @@ import scala.collection.concurrent.TrieMap
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
+import spray.json._
 
 /**
  * Abstract class which provides common logic for all LoadBalancer implementations.
@@ -125,7 +126,8 @@ abstract class CommonLoadBalancer(config: WhiskConfig,
    */
   protected def setupActivation(msg: ActivationMessage,
                                 action: ExecutableWhiskActionMetaData,
-                                instance: InvokerInstanceId): Future[Either[ActivationId, WhiskActivation]] = {
+                                instance: InvokerInstanceId,
+                                originalcpuLimit: Int): Future[Either[ActivationId, WhiskActivation]] = {
 
     // Needed for emitting metrics.
     totalActivations.increment()
@@ -149,6 +151,13 @@ abstract class CommonLoadBalancer(config: WhiskConfig,
     val resultPromise = if (msg.blocking) {
       activationPromises.getOrElseUpdate(msg.activationId, Promise[Either[ActivationId, WhiskActivation]]()).future
     } else Future.successful(Left(msg.activationId))
+  
+    // Determine if schedued activation is background activation or not
+    val backgroundActivation: Option[Boolean] = msg.content.collect {
+      case jsObject: JsObject => jsObject.fields.get("background") collect {
+        case JsBoolean(value) => value
+      }
+    }.flatten
 
     // Install a timeout handler for the catastrophic case where a completion ack is not received at all
     // (because say an invoker is down completely, or the connection to the message bus is disrupted) or when
@@ -171,13 +180,16 @@ abstract class CommonLoadBalancer(config: WhiskConfig,
           msg.user.namespace.uuid,
           instance,
           action.limits.memory.megabytes.MB,
+          action.limits.cpu.cores,
+          originalcpuLimit,
           action.limits.timeout.duration,
           action.limits.concurrency.maxConcurrent,
           action.fullyQualifiedName(true),
           timeoutHandler,
           isBlackboxInvocation,
           msg.blocking,
-          controllerInstance)
+          controllerInstance,
+          backgroundActivation)
       })
 
     resultPromise

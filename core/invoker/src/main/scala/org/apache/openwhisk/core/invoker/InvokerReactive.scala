@@ -224,7 +224,6 @@ class InvokerReactive(
       .flatMap { msg =>
         // The message has been parsed correctly, thus the following code needs to *always* produce at least an
         // active-ack.
-
         implicit val transid: TransactionId = msg.transid
 
         //set trace context to continue tracing

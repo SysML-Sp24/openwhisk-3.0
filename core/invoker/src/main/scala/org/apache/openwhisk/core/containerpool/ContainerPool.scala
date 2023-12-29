@@ -202,6 +202,7 @@ class ContainerPool(childFactory: ActorRefFactory => ActorRef,
               // Try to process the next item in buffer (or get another message from feed, if buffer is now empty)
               processBufferOrFeed()
             }
+            logging.warn(this, s"Forwarding the run request to the container")
             actor ! r // forwards the run request to the container
             logContainerStart(r, containerState, newData.activeActivationCount, container)
           case None =>
